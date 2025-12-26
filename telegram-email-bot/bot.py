@@ -11,6 +11,8 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.utils import formataddr
+from datetime import datetime
 from dotenv import load_dotenv
 
 # Načtení proměnných prostředí
@@ -35,12 +37,13 @@ EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD')
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 
 
-def send_email(message_text: str) -> bool:
+def send_email(message_text: str, from_user: str = "Telegram") -> bool:
     """
-    Odešle zprávu jako email
+    Odešle zprávu jako email přímo z Telegramu
 
     Args:
         message_text: Text zprávy k odeslání
+        from_user: Jméno uživatele nebo zdroje zprávy
 
     Returns:
         True pokud bylo odeslání úspěšné, jinak False
@@ -48,9 +51,11 @@ def send_email(message_text: str) -> bool:
     try:
         # Vytvoření email zprávy
         msg = MIMEMultipart()
-        msg['From'] = EMAIL_FROM
+        # Nastavení odesílatele jako "Telegram Bot" nebo jméno uživatele
+        msg['From'] = formataddr((f"📱 {from_user}", EMAIL_FROM))
         msg['To'] = EMAIL_TO
         msg['Subject'] = EMAIL_SUBJECT
+        msg['Reply-To'] = EMAIL_TO  # Odpovědi půjdou na cílový email
 
         # Přidání těla emailu
         msg.attach(MIMEText(message_text, 'plain', 'utf-8'))
@@ -61,7 +66,7 @@ def send_email(message_text: str) -> bool:
             server.login(EMAIL_FROM, EMAIL_PASSWORD)
             server.send_message(msg)
 
-        logger.info(f"Email úspěšně odeslán na {EMAIL_TO}")
+        logger.info(f"Email úspěšně odeslán z Telegramu na {EMAIL_TO}")
         return True
 
     except Exception as e:
@@ -72,9 +77,9 @@ def send_email(message_text: str) -> bool:
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handler pro /start příkaz"""
     welcome_message = (
-        "Vítejte v botu pro odesílání poznámek emailem! 📧\n\n"
+        "Vítejte v botu pro přímé odesílání poznámek emailem! 📧\n\n"
         "Jednoduše mi napište textovou zprávu nebo pošlete hlasovou zprávu "
-        "a já ji odešlu jako email na váš poznámkový email.\n\n"
+        f"a já ji okamžitě odešlu jako email přímo z Telegramu na: {EMAIL_TO}\n\n"
         "Příkazy:\n"
         "/start - Zobrazit tuto zprávu\n"
         "/help - Nápověda"
@@ -85,12 +90,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handler pro /help příkaz"""
     help_text = (
-        "Jak používat tento bot:\n\n"
+        "📱 Jak používat tento bot:\n\n"
         "1. Napište mi jakoukoliv textovou zprávu\n"
-        "2. Nebo pošlete hlasovou zprávu\n"
-        "3. Bot automaticky odešle zprávu jako email\n\n"
-        f"Email bude odeslán na: {EMAIL_TO}\n"
-        f"S předmětem: {EMAIL_SUBJECT}"
+        "2. Nebo pošlete hlasovou zprávu 🎤\n"
+        "3. Bot okamžitě odešle zprávu jako email přímo z Telegramu\n\n"
+        f"📧 Email bude odeslán na: {EMAIL_TO}\n"
+        f"📝 S předmětem: {EMAIL_SUBJECT}\n\n"
+        "Vaše zprávy budou odeslány přesně tak, jak je napíšete, "
+        "s časovým razítkem z Telegramu."
     )
     await update.message.reply_text(help_text)
 
@@ -98,20 +105,24 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
     Handler pro textové zprávy
-    Odešle textovou zprávu jako email
+    Odešle textovou zprávu přímo jako email z Telegramu
     """
     user = update.effective_user
     message_text = update.message.text
+    timestamp = datetime.now().strftime("%d.%m.%Y %H:%M")
 
     logger.info(f"Přijata textová zpráva od {user.username}: {message_text}")
 
-    # Formátování zprávy pro email
-    email_body = f"Zpráva od Telegram uživatele: {user.username or user.first_name}\n\n{message_text}"
+    # Zpráva bude odeslána přímo, s timestampem
+    email_body = f"{message_text}\n\n---\nOdesláno z Telegramu: {timestamp}"
+
+    # Jméno odesílatele pro email
+    from_name = user.username or user.first_name or "Telegram"
 
     # Odeslání emailu
     await update.message.reply_text("Odesílám email... ⏳")
 
-    if send_email(email_body):
+    if send_email(email_body, from_user=from_name):
         await update.message.reply_text("✅ Email byl úspěšně odeslán!")
     else:
         await update.message.reply_text("❌ Chyba při odesílání emailu. Zkuste to prosím znovu.")
@@ -120,10 +131,11 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
 async def handle_voice_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
     Handler pro hlasové zprávy
-    Stáhne hlasovou zprávu a odešle informaci o ní emailem
+    Stáhne hlasovou zprávu a odešle informaci o ní emailem přímo z Telegramu
     """
     user = update.effective_user
     voice = update.message.voice
+    timestamp = datetime.now().strftime("%d.%m.%Y %H:%M")
 
     logger.info(f"Přijata hlasová zpráva od {user.username}")
 
@@ -133,21 +145,23 @@ async def handle_voice_message(update: Update, context: ContextTypes.DEFAULT_TYP
         file_path = f"voice_{voice.file_id}.ogg"
         await voice_file.download_to_drive(file_path)
 
-        # Formátování zprávy pro email
+        # Formátování zprávy pro email - jednoduché a přímé
         duration = voice.duration
         email_body = (
-            f"Hlasová zpráva od Telegram uživatele: {user.username or user.first_name}\n\n"
-            f"Délka nahrávky: {duration} sekund\n"
-            f"Soubor ID: {voice.file_id}\n\n"
-            f"Poznámka: Hlasová zpráva byla přijata, ale automatická transkripce není v tuto chvíli dostupná. "
-            f"Soubor byl uložen lokálně jako: {file_path}"
+            f"🎤 HLASOVÁ ZPRÁVA ({duration} sekund)\n\n"
+            f"Soubor uložen: {file_path}\n"
+            f"File ID: {voice.file_id}\n\n"
+            f"---\nOdesláno z Telegramu: {timestamp}"
         )
+
+        # Jméno odesílatele pro email
+        from_name = user.username or user.first_name or "Telegram"
 
         # Odeslání emailu
         await update.message.reply_text("Zpracovávám hlasovou zprávu a odesílám email... ⏳")
 
-        if send_email(email_body):
-            await update.message.reply_text("✅ Email s informací o hlasové zprávě byl odeslán!")
+        if send_email(email_body, from_user=from_name):
+            await update.message.reply_text("✅ Email s hlasovou zprávou byl odeslán!")
         else:
             await update.message.reply_text("❌ Chyba při odesílání emailu. Zkuste to prosím znovu.")
 
