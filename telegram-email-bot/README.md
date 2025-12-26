@@ -1,13 +1,15 @@
-# Telegram Email Bot
+# Telegram Email Bot 📱➡️📧
 
-Python aplikace s Telegram botem, který přijímá textové a hlasové zprávy a odesílá je jako emaily.
+Python aplikace s Telegram botem, který **okamžitě odesílá vaše zprávy přímo z Telegramu jako emaily**.
 
 ## Funkce
 
-- Přijímá textové zprávy z Telegramu
-- Přijímá hlasové zprávy z Telegramu
-- Automaticky odesílá zprávy jako email
-- Konfigurovatelný odesílatel, příjemce a předmět emailu
+- ✅ Přijímá textové zprávy z Telegramu a odesílá je rovnou emailem
+- 🎤 Přijímá hlasové zprávy z Telegramu
+- 📧 Emaily přicházejí s označením "📱 [Vaše jméno]" jako odesílatel
+- ⚡ Okamžité odesílání - napíšete zprávu, email je hned odeslán
+- 📝 Předkonfigurováno na email: edvin.kuhner@aaaauto.cz
+- 🏷️ Předmět: "nápad do poznámek"
 
 ## Požadavky
 
@@ -114,11 +116,27 @@ Bot je spuštěn a čeká na zprávy...
 
 **Textová zpráva:**
 - Napište jakýkoliv text do chatu s botem
-- Bot automaticky odešle zprávu jako email
+- Bot okamžitě odešle zprávu jako email přímo z Telegramu
+- Email obsahuje váš text přesně tak, jak jste ho napsali + časové razítko
 
 **Hlasová zpráva:**
-- Nahrajte a pošlete hlasovou zprávu
+- Nahrajte a pošlete hlasovou zprávu 🎤
 - Bot stáhne zprávu a odešle informaci o ní emailem
+- Email obsahuje délku nahrávky a informace o souboru
+
+### Jak vypadají emaily?
+
+**Odesílatel:** 📱 [Vaše_Telegram_Jméno]
+**Příjemce:** edvin.kuhner@aaaauto.cz
+**Předmět:** nápad do poznámek
+**Tělo emailu:** Váš text přesně tak, jak jste ho napsali
+
+```
+Toto je můj nápad na zlepšení...
+
+---
+Odesláno z Telegramu: 26.12.2025 14:30
+```
 
 ### Příkazy
 
@@ -168,9 +186,11 @@ telegram-email-bot/
 - **smtplib** - Vestavěná Python knihovna pro odesílání emailů
 - **python-dotenv** - Načítání konfigurace z .env souboru
 
-## Autor
+## O projektu
 
-Vytvořeno pro odesílání nápadů do poznámek přes Telegram
+Bot byl vytvořen pro **rychlé a jednoduché odesílání nápadů a poznámek emailem přímo z Telegramu**.
+
+Stačí otevřít Telegram, napsat zprávu a váš nápad okamžitě dorazí do vašeho emailu s předmětem "nápad do poznámek".
 
 ## Licence
 
