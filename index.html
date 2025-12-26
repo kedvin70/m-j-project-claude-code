@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Asistentů</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 Centrální Dashboard Asistentů</h1>
+            <p class="subtitle">Vyberte asistenta podle typu úkolu</p>
+        </header>
+
+        <main class="dashboard">
+            <div id="assistants-grid" class="assistants-grid">
+                <!-- Asistenti budou dynamicky načteni přes JavaScript -->
+            </div>
+        </main>
+
+        <footer>
+            <p>Vytvořeno s Claude Code</p>
+        </footer>
+    </div>
+
+    <!-- Modal pro detail asistenta -->
+    <div id="assistant-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div id="modal-body">
+                <!-- Detail asistenta -->
+            </div>
+        </div>
+    </div>
+
+    <script src="js/assistants-config.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
